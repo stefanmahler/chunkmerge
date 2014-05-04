@@ -9,7 +9,6 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
-import com.github.chunkmerge.merge.Merger;
 import com.github.chunkmerge.model.Chunk;
 import com.github.chunkmerge.model.Chunkholder;
 
@@ -26,35 +25,48 @@ public class TestMerger {
 
   @Test
   public void testMergeNormalWithEmpty() {
-    final Chunkholder<String> chunkA = create(chunk("A", "B", "C"), chunk("K", "L"), chunk("S"), chunk("X", "Y", "Z"));
+    final Chunkholder<String> chunkA = create(chunk("A", "B", "C"),
+        chunk("K", "L"), chunk("S"), chunk("X", "Y", "Z"));
     final Chunkholder<String> chunkB = create();
 
     final Merger<String> merger = new Merger<String>(4, chunkA, chunkB);
-    Assertions.assertThat(toChunkArray(merger)).containsExactly(chunk("A", "B", "C", "K"),
-                                                                chunk("L", "S", "X", "Y"),
-                                                                chunk("Z"));
+    Assertions.assertThat(toChunkArray(merger)).containsExactly(
+        chunk("A", "B", "C", "K"), chunk("L", "S", "X", "Y"), chunk("Z"));
   }
 
   @Test
   public void testMergeEmptyWithNormal() {
     final Chunkholder<String> chunkA = create();
-    final Chunkholder<String> chunkB = create(chunk("A", "B", "C"), chunk("K", "L"), chunk("S"), chunk("X", "Y", "Z"));
+    final Chunkholder<String> chunkB = create(chunk("A", "B", "C"),
+        chunk("K", "L"), chunk("S"), chunk("X", "Y", "Z"));
 
     final Merger<String> merger = new Merger<String>(4, chunkA, chunkB);
-    Assertions.assertThat(toChunkArray(merger)).containsExactly(chunk("A", "B", "C", "K"),
-                                                                chunk("L", "S", "X", "Y"),
-                                                                chunk("Z"));
+    Assertions.assertThat(toChunkArray(merger)).containsExactly(
+        chunk("A", "B", "C", "K"), chunk("L", "S", "X", "Y"), chunk("Z"));
   }
 
   @Test
   public void mergeNoCollisions() {
-    final Chunkholder<String> chunkA = create(chunk("A", "C"), chunk("L", "S", "Y"));
+    final Chunkholder<String> chunkA = create(chunk("A", "C"),
+        chunk("L", "S", "Y"));
     final Chunkholder<String> chunkB = create(chunk("B"), chunk("K", "X", "Z"));
 
     final Merger<String> merger = new Merger<String>(4, chunkA, chunkB);
-    Assertions.assertThat(toChunkArray(merger)).containsExactly(chunk("A", "B", "C", "K"),
-                                                                chunk("L", "S", "X", "Y"),
-                                                                chunk("Z"));
+    Assertions.assertThat(toChunkArray(merger)).containsExactly(
+        chunk("A", "B", "C", "K"), chunk("L", "S", "X", "Y"), chunk("Z"));
+  }
+
+  @Test
+  public void mergeWithCollisions() {
+    final Chunkholder<String> chunkA = create(chunk("A", "C"), chunk("L", "M"),
+        chunk("Q", "S"), chunk("W", "Y"));
+    final Chunkholder<String> chunkB = create(chunk("B", "C"), chunk("K", "L"),
+        chunk("W", "X"), chunk("Y", "Z"));
+
+    final Merger<String> merger = new Merger<String>(4, chunkA, chunkB);
+    Assertions.assertThat(toChunkArray(merger)).containsExactly(
+        chunk("A", "B", "C", "K"), chunk("L", "M", "Q", "S"),
+        chunk("W", "X", "Y", "Z"));
   }
 
   private String[][] toChunkArray(final Merger<String> merger) {
@@ -65,17 +77,17 @@ public class TestMerger {
     return result.toArray(new String[0][0]);
   }
 
-  private <T extends Comparable<T>> Chunkholder<T> create(final T[] ... chunksArray) {
+  private <T extends Comparable<T>> Chunkholder<T> create(final T[]... chunksArray) {
     final List<List<T>> chunksList = new ArrayList<List<T>>(chunksArray.length);
     for (final T[] chunk : chunksArray) {
       chunksList.add(asList(chunk));
     }
     final Iterator<List<T>> iterator = chunksList.iterator();
-    return new Chunkholder<T>(){
+    return new Chunkholder<T>() {
 
       @Override
       public Chunk<T> iterator() {
-        return new Chunk<T>(){
+        return new Chunk<T>() {
 
           @Override
           public boolean hasNext() {
@@ -99,7 +111,7 @@ public class TestMerger {
     };
   }
 
-  private <T> T[] chunk(final T ... items) {
+  private <T> T[] chunk(final T... items) {
     return items;
   }
 }
